@@ -1,0 +1,9 @@
+# Core dependencies
+pytest
+PyPDF2
+python-docx
+python-docx-template
+beautifulsoup4
+lxml
+djvulibre
+reportlab

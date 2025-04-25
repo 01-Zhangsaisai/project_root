@@ -33,4 +33,4 @@ class TestDOCXParser:
     
     def test_invalid_docx_raises_exception(self, invalid_docx):
          with pytest.raises(InvalidDOCXException):
-             DOCXParser(invalid_docx).extract_text()
+             DOCXParser(invalid_docx).extract_text()  

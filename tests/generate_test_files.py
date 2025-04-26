@@ -1,11 +1,18 @@
 import os
+import random
+import string
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from docx import Document
 
+def random_string(length=10):
+    """生成指定长度的随机字符串"""
+    letters = string.ascii_letters + string.digits
+    return ''.join(random.choice(letters) for i in range(length))
+
 def create_valid_pdf(file_path):
     c = canvas.Canvas(file_path, pagesize=letter)
-    c.drawString(100, 750, "This is a valid sample PDF file.")
+    c.drawString(100, 750, f"This is a valid sample PDF file: {random_string()}.")
     c.save()
 
 def create_invalid_pdf(file_path):
@@ -14,7 +21,7 @@ def create_invalid_pdf(file_path):
 
 def create_valid_doc(file_path):
     with open(file_path, 'w') as f:
-        f.write("This is a valid sample DOC file.")  # 简单文本内容
+        f.write(f"This is a valid sample DOC file: {random_string()}.\n")  # 简单文本内容
 
 def create_invalid_doc(file_path):
     with open(file_path, 'wb') as f:
@@ -22,8 +29,8 @@ def create_invalid_doc(file_path):
 
 def create_valid_docx(file_path):
     doc = Document()
-    doc.add_heading('Sample DOCX File', level=1)
-    doc.add_paragraph('This is a valid sample DOCX file.')
+    doc.add_heading(f'Sample DOCX File: {random_string()}', level=1)
+    doc.add_paragraph(f'This is a valid sample DOCX file: {random_string()}.')
     doc.save(file_path)
 
 def create_invalid_docx(file_path):
@@ -32,7 +39,7 @@ def create_invalid_docx(file_path):
 
 def create_valid_html(file_path):
     with open(file_path, 'w') as f:
-        f.write("<html><body><h1>This is a valid sample HTML file.</h1></body></html>")
+        f.write(f"<html><body><h1>This is a valid sample HTML file: {random_string()}.</h1></body></html>")
 
 def create_invalid_html(file_path):
     with open(file_path, 'w') as f:
@@ -56,18 +63,18 @@ def generate_test_files(num_files=5):  # 添加参数以指定要创建的文件
     os.makedirs(invalid_dir, exist_ok=True)
 
     for i in range(num_files):  # 循环以创建多个有效文件
-        create_valid_pdf(os.path.join(valid_dir, f"sample_{i + 1}.pdf"))
-        create_valid_doc(os.path.join(valid_dir, f"sample_{i + 1}.doc"))
-        create_valid_docx(os.path.join(valid_dir, f"sample_{i + 1}.docx"))
-        create_valid_html(os.path.join(valid_dir, f"sample_{i + 1}.html"))
-        create_valid_djvu(os.path.join(valid_dir, f"sample_{i + 1}.djvu"))
+        create_valid_pdf(os.path.join(valid_dir, f"sample_{i + 1}_{random_string(5)}.pdf"))
+        create_valid_doc(os.path.join(valid_dir, f"sample_{i + 1}_{random_string(5)}.doc"))
+        create_valid_docx(os.path.join(valid_dir, f"sample_{i + 1}_{random_string(5)}.docx"))
+        create_valid_html(os.path.join(valid_dir, f"sample_{i + 1}_{random_string(5)}.html"))
+        create_valid_djvu(os.path.join(valid_dir, f"sample_{i + 1}_{random_string(5)}.djvu"))
 
         # 创建无效文件
-        create_invalid_pdf(os.path.join(invalid_dir, f"corrupted_{i + 1}.pdf"))
-        create_invalid_doc(os.path.join(invalid_dir, f"corrupted_{i + 1}.doc"))
-        create_invalid_docx(os.path.join(invalid_dir, f"corrupted_{i + 1}.docx"))
-        create_invalid_html(os.path.join(invalid_dir, f"corrupted_{i + 1}.html"))
-        create_invalid_djvu(os.path.join(invalid_dir, f"corrupted_{i + 1}.djvu"))
+        create_invalid_pdf(os.path.join(invalid_dir, f"corrupted_{i + 1}_{random_string(5)}.pdf"))
+        create_invalid_doc(os.path.join(invalid_dir, f"corrupted_{i + 1}_{random_string(5)}.doc"))
+        create_invalid_docx(os.path.join(invalid_dir, f"corrupted_{i + 1}_{random_string(5)}.docx"))
+        create_invalid_html(os.path.join(invalid_dir, f"corrupted_{i + 1}_{random_string(5)}.html"))
+        create_invalid_djvu(os.path.join(invalid_dir, f"corrupted_{i + 1}_{random_string(5)}.djvu"))
 
 if __name__ == "__main__":
     generate_test_files(num_files=10)  # 调用时指定要创建的文件数量

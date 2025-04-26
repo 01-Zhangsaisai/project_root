@@ -1,72 +1,58 @@
 # src/parsers/djvu_parser.py
-
-from pydjvu import DjVuDocument  # pip install pydjvu
+import subprocess
+import fitz  # PyMuPDF
+import os
 from .base_parser import BaseParser
 from src.utils.exceptions import InvalidDJVUException
 
+
 class DJVUParser(BaseParser):
-    
     SUPPORTED_MIME_TYPES = ['image/vnd.djvu']
     SUPPORTED_EXTENSIONS = ['.djvu']
 
     def __init__(self, file_path):
-        """初始化 DJVUParser 实例。
-
-        Args:
-            file_path (str): DJVU 文件的路径。
-        """
         self.file_path = file_path
+        self.pdf_path = os.path.splitext(file_path)[0] + ".pdf"
+
+        # 转换 DJVU 到 PDF
+        subprocess.run([
+            "ddjvu",
+            "-format=pdf",
+            self.file_path,
+            self.pdf_path
+        ], check=True)
 
     def extract_text(self) -> str:
-        """从 DJVU 文件中提取文本。
-
-        Returns:
-            str: 提取的文本内容。
-
-        Raises:
-            InvalidDJVUException: 如果无法提取文本。
-        """
-        document = DjVuDocument(self.file_path)
-        text = ""
-        for page in document.pages:
-            text += page.text + "\n"
-        return text.strip()
+        """从 PDF 提取文本"""
+        doc = fitz.open(self.pdf_path)
+        text = "".join([page.get_text() for page in doc])
+        doc.close()
+        return text
 
     def extract_metadata(self) -> dict:
-        """从 DJVU 文件中提取元数据。
-
-        Returns:
-            dict: 包含标题、作者和页数的元数据字典。
-
-        Raises:
-            InvalidDJVUException: 如果无法提取元数据。
-        """
-        document = DjVuDocument(self.file_path)
+        """从 PDF 提取元数据"""
+        doc = fitz.open(self.pdf_path)
         metadata = {
-            "title": document.title,
-            "author": document.author,
-            "num_pages": len(document.pages)
+            "title": doc.metadata.get("title", "Unknown"),
+            "author": doc.metadata.get("author", "Unknown"),
+            "num_pages": doc.page_count
         }
+        doc.close()
         return metadata
 
     def extract_images(self, output_dir: str) -> list:
-        """从 DJVU 文件中提取图像并保存到指定目录。
-
-        Args:
-            output_dir (str): 图像保存的目录路径。
-
-        Returns:
-            list: 保存的图像文件路径列表。
-
-        Raises:
-            InvalidDJVUException: 如果无法提取图像。
-        """
+        """从 PDF 提取图像"""
+        doc = fitz.open(self.pdf_path)
         images = []
-        document = DjVuDocument(self.file_path)
-        
-        for i, page in enumerate(document.pages):
-            image_path = f"{output_dir}/page_{i + 1}.png"  # 保存每一页为图像
-            page.save_image(image_path)  # 保存图像（根据需要调整）
-            images.append(image_path)
-        
+        for page_num in range(doc.page_count):
+            page = doc.load_page(page_num)
+            image_list = page.get_images(full=True)
+            for img_index, img in enumerate(image_list):
+                xref = img[0]
+                base_image = doc.extract_image(xref)
+                image_path = os.path.join(output_dir, f"page_{page_num + 1}_img_{img_index}.{base_image['ext']}")
+                with open(image_path, "wb") as f:
+                    f.write(base_image["image"])
+                images.append(image_path)
+        doc.close()
         return images

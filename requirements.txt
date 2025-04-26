@@ -2,8 +2,8 @@
 pytest
 PyPDF2
 python-docx
-python-docx-template
+docxtpl
 beautifulsoup4
 lxml
-djvulibre
 reportlab
+pymupdf

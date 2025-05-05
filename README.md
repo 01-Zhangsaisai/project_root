@@ -1,48 +1,62 @@
-# project_root
+# Project Root
 
-## Введение  
+## Introduction  
+This project provides document analysis functionality for multiple formats, including PDF, DOCX, HTML, DOC, and DJVU files.  
 
-Данный проект предоставляет функции анализа документов в различных форматах, включая файлы PDF, DOCX, HTML, DOC и DJVU.  
+---
 
-## Требования к окружению  
+## Environment Requirements  
+Ensure the following software is installed on your system:  
+- **Python 3.8+**  
+- **Required Libraries** (see `requirements.txt`)  
 
-Убедитесь, что на вашем компьютере установлено следующее программное обеспечение:  
-- Python 3.x  
-- Необходимые библиотеки (см. файл `requirements.txt`)  
+---
 
-## Инструкция по установке  
+## Installation Guide  
 
-1. Клонируйте репозиторий проекта на локальный компьютер:  
-   ```bash  
-   git clone https://github.com/01-Zhangsaisai/project_root/tree/master #Адрес файла
-   cd project_root  
+### 1. Clone the Repository  
+```bash  
+git clone https://github.com/01-Zhangsaisai/project_root.git  
+cd project_root
+``` 
+### 2. Install Dependencies
+```bash
+pip install -r requirements.txt 
+``` 
 
+Usage Instructions
+Command-Line Execution
+Run the program with the following syntax:
 
-Установите необходимые зависимости:
-pip install -r requirements.txt  
+```bash
+python main.py <file_path> -t <file_type> 
+``` 
+Arguments:
+<file_path>: Absolute or relative path to the document.
 
+-t/--type: Document type (pdf, docx, html, doc, djvu).
 
-Разместите ваши документы по следующему пути:
+Example:
+```bash
+python main.py "tests/data/valid/sample.pdf" -t pdf  
+```
+Output
+Successful parsing will display:
 
-C:\Users\zss\project_root\tests\data\valid\  
-Убедитесь, что имена файлов соответствуют примерам в коде (например, sample.pdf, sample.docx и т.д.).
+text
+✅ Parsing succeeded  
+File Type: PDF  
+Text Length: 1500 characters  
+Metadata Items: 3 entries  
+Images Extracted: 2  
+Key Files
+main.py: Entry point for document parsing.
 
-Запуск программы
-В корневой директории проекта выполните команду:
+README.md: Updated with installation, usage, and troubleshooting details.
 
-python main.py  
+Troubleshooting
+Dependency Issues: Reinstall using pip install -r requirements.txt.
 
+File Access Errors: Ensure the path is correct and the file is not locked.
 
-Программа запросит тип файла и путь к нему. Введите данные в соответствии с подсказками:
-
-Введите тип файла (pdf, docx, html, doc, djvu): pdf  
-Введите путь к файлу: C:\Users\zss\project_root\tests\data\valid\sample.pdf  #Адрес файла
-
-
-После выполнения будут извлечены текст и метаданные, а результаты отобразятся в консоли.
-
-
-Резюме
-main.py — интегрирует все функции анализа документов, позволяя пользователю выбирать тип файла и путь для обработки.
-
-Обновленный README.md — содержит детальные инструкции по установке, запуску и использованию программы.
+Unsupported Formats: Verify the file type matches the registered parsers.

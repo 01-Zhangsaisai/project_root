@@ -1,58 +1,44 @@
 # src/parsers/docx_parser.py
+from docx import Document
+from docx.opc.exceptions import PackageNotFoundError
+from pathlib import Path
+from .base_parser import BaseParser
+from src.utils.exceptions import InvalidFileError
 
-from docx import Document  # pip install python-docx   
-from .base_parser import BaseParser   
-from src.utils.exceptions import InvalidDOCXException  
 
-class DOCXParser(BaseParser): 
-    
-    SUPPORTED_MIME_TYPES = ['application/vnd.openxmlformats-officedocument.wordprocessingml.document']   
-    SUPPORTED_EXTENSIONS = ['.docx']  
+class DOCXParser(BaseParser):
+    """
+    Microsoft Word文档解析器（新版）
+    支持格式：application/vnd.openxmlformats-officedocument.wordprocessingml.document, .docx
+    """
+
+    SUPPORTED_MIME_TYPES = ['application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+    SUPPORTED_EXTENSIONS = ['.docx']
+
+    def _validate_file(self):
+        """执行DOCX特定验证"""
+        super()._validate_file()
+        path = Path(self.file_path)
+        try:
+            Document(path)
+        except PackageNotFoundError:
+            raise InvalidFileError("docx", path, "文件损坏") from None
 
     def extract_text(self) -> str:
-        """从 DOCX 文件中提取文本。
-
-        返回:
-            str: 提取的文本内容。
-
-        异常:
-            InvalidDOCXException: 如果无法从 DOCX 文件中提取文本。
-        """
+        """提取文档文本内容"""
         doc = Document(self.file_path)
-        text_chunks = [para.text for para in doc.paragraphs]
-        return "\n".join(text_chunks).strip()
+        return "\n".join(para.text for para in doc.paragraphs)
 
     def extract_metadata(self) -> dict:
-        """从 DOCX 文件中提取元数据。
-
-        返回:
-            dict: 包含文档元数据的字典，包括标题、作者、创建时间和修改时间。
-
-        异常:
-            InvalidDOCXException: 如果无法从 DOCX 文件中提取元数据。
-        """
+        """提取文档属性信息"""
         doc = Document(self.file_path)
-        core_properties = doc.core_properties
         return {
-            "title": core_properties.title,
-            "author": core_properties.author,
-            "created": core_properties.created,
-            "modified": core_properties.modified,
+            "title": doc.core_properties.title,
+            "author": doc.core_properties.author,
+            "created": doc.core_properties.created
         }
 
     def extract_images(self) -> list:
-        """从 DOCX 文件中提取图像。
-
-        返回:
-            list: 包含图像二进制数据的列表。
-
-        异常:
-            InvalidDOCXException: 如果无法从 DOCX 文件中提取图像。
-        """
-        images = []
+        """提取嵌入式图片"""
         doc = Document(self.file_path)
-        for rel in doc.part.rels.values():
-            if "image" in rel.reltype:
-                image_data = rel.target_part.blob  # 获取图片二进制数据
-                images.append(image_data)
-        return images
+        return [rel.target_part.blob for rel in doc.part.rels.values() if "image" in rel.reltype]

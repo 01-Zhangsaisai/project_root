@@ -1,56 +1,45 @@
 # src/parsers/html_parser.py
+from bs4 import BeautifulSoup
+from pathlib import Path
+from .base_parser import BaseParser
+from src.utils.exceptions import InvalidFileError
 
-from bs4 import BeautifulSoup  # pip install beautifulsoup4 lxml html5lib  
-from .base_parser import BaseParser  
-from src.utils.exceptions import InvalidHTMLException  
 
-class HTMLParser(BaseParser): 
-    
-    SUPPORTED_MIME_TYPES = ['text/html', 'application/xhtml+xml']  
-    SUPPORTED_EXTENSIONS = ['.html', '.htm']  
+class HTMLParser(BaseParser):
+    """
+    HTML文档解析器
+    支持格式：text/html, application/xhtml+xml, .html, .htm
+    """
 
-    def extract_text(self) -> str:  
-        """从 HTML 文件中提取文本。
+    SUPPORTED_MIME_TYPES = ['text/html', 'application/xhtml+xml']
+    SUPPORTED_EXTENSIONS = ['.html', '.htm']
 
-        返回:
-            str: 提取的文本内容。
+    def _validate_file(self):
+        """执行HTML结构验证"""
+        super()._validate_file()
+        path = Path(self.file_path)
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                BeautifulSoup(f.read(), 'html.parser')
+        except Exception as e:
+            raise InvalidFileError("html", path, "无效的HTML结构") from e
 
-        异常:
-            InvalidHTMLException: 如果无法从 HTML 文件中提取文本。
-        """
-        with open(self.file_path, 'r', encoding='utf-8') as file:  
-            soup = BeautifulSoup(file, 'html.parser')  
-            return soup.get_text().strip()  
+    def extract_text(self) -> str:
+        """提取纯文本内容"""
+        with open(self.file_path, 'r', encoding='utf-8') as f:
+            return BeautifulSoup(f, 'html.parser').get_text().strip()
 
-    def extract_metadata(self) -> dict:  
-        """从 HTML 文件中提取元数据。
-
-        返回:
-            dict: 包含文档元数据的字典，包括标题。
-
-        异常:
-            InvalidHTMLException: 如果无法从 HTML 文件中提取元数据。
-        """
-        with open(self.file_path, 'r', encoding='utf-8') as file:  
-            soup = BeautifulSoup(file, 'html.parser')  
-            title = soup.title.string if soup.title else None  
-            return {"title": title}  
+    def extract_metadata(self) -> dict:
+        """提取网页元信息"""
+        with open(self.file_path, 'r', encoding='utf-8') as f:
+            soup = BeautifulSoup(f, 'html.parser')
+            return {
+                "title": soup.title.string if soup.title else None,
+                "charset": soup.original_encoding
+            }
 
     def extract_images(self) -> list:
-        """从 HTML 文件中提取图像 URL。
-
-        返回:
-            list: 包含图像 URL 的列表。
-
-        异常:
-            InvalidHTMLException: 如果无法从 HTML 文件中提取图像。
-        """
-        images = []  
-        with open(self.file_path, 'r', encoding='utf-8') as file:
-            soup = BeautifulSoup(file, 'html.parser')
-            img_tags = soup.find_all('img')
-            for img in img_tags:
-                img_url = img['src']
-                images.append(img_url)
-        
-        return images   
+        """提取图片链接"""
+        with open(self.file_path, 'r', encoding='utf-8') as f:
+            soup = BeautifulSoup(f, 'html.parser')
+            return [img['src'] for img in soup.find_all('img') if img.get('src')]

@@ -1,58 +1,66 @@
 # src/parsers/djvu_parser.py
 import subprocess
-import fitz  # PyMuPDF
 import os
+import fitz
+from pathlib import Path
 from .base_parser import BaseParser
-from src.utils.exceptions import InvalidDJVUException
+from src.utils.exceptions import InvalidFileError, FileAccessError
 
 
 class DJVUParser(BaseParser):
+    """
+    DjVu图像文档解析器
+    支持格式：image/vnd.djvu, .djvu
+    """
+
     SUPPORTED_MIME_TYPES = ['image/vnd.djvu']
     SUPPORTED_EXTENSIONS = ['.djvu']
 
-    def __init__(self, file_path):
-        self.file_path = file_path
-        self.pdf_path = os.path.splitext(file_path)[0] + ".pdf"
+    def __init__(self, file_path: str):
+        super().__init__(file_path)
+        self.pdf_path = self._convert_to_pdf()
 
-        # 转换 DJVU 到 PDF
-        subprocess.run([
-            "ddjvu",
-            "-format=pdf",
-            self.file_path,
-            self.pdf_path
-        ], check=True)
+    def _validate_file(self):
+        """执行DjVu特定验证"""
+        super()._validate_file()
+        path = Path(self.file_path)
+        with open(path, 'rb') as f:
+            if f.read(4) != b'AT&T':
+                raise InvalidFileError("djvu", path, "无效文件头")
+
+    def _convert_to_pdf(self) -> str:
+        """将DjVu转换为临时PDF文件"""
+        pdf_path = Path(self.file_path).with_suffix('.pdf')
+        try:
+            subprocess.run(
+                ["ddjvu", "-format=pdf", self.file_path, str(pdf_path)],
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            raise InvalidFileError("djvu", Path(self.file_path), "格式转换失败") from None
+        return str(pdf_path)
 
     def extract_text(self) -> str:
-        """从 PDF 提取文本"""
-        doc = fitz.open(self.pdf_path)
-        text = "".join([page.get_text() for page in doc])
-        doc.close()
-        return text
+        """从转换后的PDF提取文本"""
+        with fitz.open(self.pdf_path) as doc:
+            return "\n".join(page.get_text() for page in doc)
 
     def extract_metadata(self) -> dict:
-        """从 PDF 提取元数据"""
-        doc = fitz.open(self.pdf_path)
-        metadata = {
-            "title": doc.metadata.get("title", "Unknown"),
-            "author": doc.metadata.get("author", "Unknown"),
-            "num_pages": doc.page_count
-        }
-        doc.close()
-        return metadata
+        """提取元数据"""
+        with fitz.open(self.pdf_path) as doc:
+            return dict(doc.metadata)
 
-    def extract_images(self, output_dir: str) -> list:
-        """从 PDF 提取图像"""
-        doc = fitz.open(self.pdf_path)
+    def extract_images(self) -> list:
+        """提取图像数据"""
         images = []
-        for page_num in range(doc.page_count):
-            page = doc.load_page(page_num)
-            image_list = page.get_images(full=True)
-            for img_index, img in enumerate(image_list):
-                xref = img[0]
-                base_image = doc.extract_image(xref)
-                image_path = os.path.join(output_dir, f"page_{page_num + 1}_img_{img_index}.{base_image['ext']}")
-                with open(image_path, "wb") as f:
-                    f.write(base_image["image"])
-                images.append(image_path)
-        doc.close()
+        with fitz.open(self.pdf_path) as doc:
+            for page in doc:
+                images.extend(doc.extract_image(img[0])["image"] for img in page.get_images())
         return images
+
+    def __del__(self):
+        """清理临时PDF文件"""
+        if os.path.exists(self.pdf_path):
+            os.remove(self.pdf_path)

@@ -1,44 +1,62 @@
+# main.py
+"""
+命令行主入口模块
+"""
+import argparse
+import sys
+import traceback
 from pathlib import Path
-from src.parsers.pdf_parser import PDFParser
-from src.parsers.docx_parser import DOCXParser
-from src.parsers.html_parser import HTMLParser
-from src.parsers.doc_parser import DOCParser
-from src.parsers.djvu_parser import DJVUParser
+from src.core.file_processor import FileProcessor
+from src.utils.exceptions import ParserException
+
+def create_parser():
+    """创建命令行参数解析器"""
+    parser = argparse.ArgumentParser(
+        prog="DocParser",
+        description="多格式文档解析工具 v1.1",
+        epilog="示例: python main.py document.pdf -t pdf",
+        formatter_class=argparse.RawTextHelpFormatter
+    )
+    parser.add_argument(
+        "file_path",
+        type=str,
+        help="需要解析的文件路径\n(支持绝对路径和相对路径)"
+    )
+    parser.add_argument(
+        "-t", "--type",
+        required=True,
+        choices=["pdf", "docx", "html", "doc", "djvu"],
+        help="指定文档格式类型\n可选值：pdf, docx, html, doc, djvu"
+    )
+    return parser
 
 def main():
-    # 用户输入文件类型和路径
-    file_type = input("请输入文件类型 (pdf, docx, html, doc, djvu): ").strip().lower()
-    file_path = input("请输入文件路径: ").strip()
-
-    # 根据文件类型选择相应的解析器
-    parser = None
-
-    if file_type == 'pdf':
-        parser = PDFParser(Path(file_path))
-    elif file_type == 'docx':
-        parser = DOCXParser(Path(file_path))
-    elif file_type == 'html':
-        parser = HTMLParser(Path(file_path))
-    elif file_type == 'doc':
-        parser = DOCParser(Path(file_path))
-    elif file_type == 'djvu':
-        parser = DJVUParser(Path(file_path))
-    else:
-        print("不支持的文件类型！")
-        return
+    """主执行流程"""
+    parser = create_parser()
+    args = parser.parse_args()
 
     try:
-        text = parser.extract_text()
-        print("提取的文本:")
-        print(text)
+        # 初始化处理器
+        processor = FileProcessor(Path(args.file_path))
 
-        if hasattr(parser, 'extract_metadata'):
-            metadata = parser.extract_metadata()
-            print("元数据:")
-            print(metadata)
+        # 执行解析操作
+        result = processor.process()
 
+        # 安全输出结果
+        print("✅ 解析成功")
+        print(f"文件类型: {args.type.upper()}")
+        print(f"文本长度: {len(result.get('text', ''))}字符")
+        print(f"元数据项: {len(result.get('metadata', {}))}条")
+        print(f"图片数量: {len(result.get('images', []))}张")
+
+    except ParserException as e:
+        print(f"❌ 解析错误: {str(e)}")
+        sys.exit(1)
     except Exception as e:
-        print(f"发生错误: {e}")
+        print(f"❌ 系统错误: {e.__class__.__name__}")
+        print(f"详细原因: {str(e)}")
+        traceback.print_exc()  # 打印完整堆栈
+        sys.exit(2)
 
 if __name__ == "__main__":
     main()

@@ -1,4 +1,4 @@
-# Core dependencies
+# Основные зависимости
 pytest
 PyPDF2
 python-docx

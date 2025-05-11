@@ -8,47 +8,47 @@ from src.utils.exceptions import InvalidFileError
 
 class PDFParser(BaseParser):
     """
-    PDF文档解析器
-    功能：提取文本/元数据/图片
-    支持格式：.pdf, application/pdf
+    Парсер PDF-документов
+    Функционал: извлечение текста/метаданных/изображений
+    Поддерживаемые форматы: .pdf, application/pdf
     """
 
     SUPPORTED_MIME_TYPES = ['application/pdf']
     SUPPORTED_EXTENSIONS = ['.pdf']
 
     def _validate_file(self):
-        """PDF文件深度验证"""
+        """Углубленная проверка PDF"""
         super()._validate_file()
         try:
             with fitz.open(self.file_path) as doc:
                 if doc.is_encrypted:
-                    raise InvalidFileError("pdf", Path(self.file_path), "文件已加密")
+                    raise InvalidFileError("pdf", Path(self.file_path), "файл зашифрован")
                 if doc.page_count == 0:
-                    raise InvalidFileError("pdf", Path(self.file_path), "空文档")
+                    raise InvalidFileError("pdf", Path(self.file_path), "пустой документ")
         except fitz.FileDataError:
-            raise InvalidFileError("pdf", Path(self.file_path), "文件损坏") from None
+            raise InvalidFileError("pdf", Path(self.file_path), "файл поврежден") from None
 
     def extract_text(self) -> str:
-        """提取PDF文本内容"""
+        """Извлечение текста из PDF"""
         try:
             with fitz.open(self.file_path) as doc:
                 return "\n".join(page.get_text() for page in doc)
         except Exception as e:
-            raise RuntimeError(f"文本提取失败: {str(e)}")
+            raise RuntimeError(f"Ошибка извлечения текста: {str(e)}")
 
     def extract_metadata(self) -> Dict[str, str]:
-        """安全提取PDF元数据"""
+        """Безопасное извлечение метаданных"""
         with fitz.open(self.file_path) as doc:
             meta = doc.metadata or {}
             return {
-                "title": meta.get("title", "未知标题"),
-                "author": meta.get("author", "未知作者"),
-                "creator": meta.get("creator", "未知创建工具"),
-                "creation_date": meta.get("creationDate", "未知日期")
+                "title": meta.get("title", "Без названия"),
+                "author": meta.get("author", "Неизвестный автор"),
+                "creator": meta.get("creator", "Неизвестная программа"),
+                "creation_date": meta.get("creationDate", "Неизвестная дата")
             }
 
     def extract_images(self) -> List[bytes]:
-        """提取PDF中的图片"""
+        """Извлечение изображений из PDF"""
         images = []
         try:
             with fitz.open(self.file_path) as doc:
@@ -57,5 +57,5 @@ class PDFParser(BaseParser):
                         xref = img[0]
                         images.append(doc.extract_image(xref)["image"])
         except Exception as e:
-            raise RuntimeError(f"图片提取失败: {str(e)}")
+            raise RuntimeError(f"Ошибка извлечения изображений: {str(e)}")
         return images

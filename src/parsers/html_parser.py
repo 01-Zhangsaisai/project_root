@@ -7,30 +7,30 @@ from src.utils.exceptions import InvalidFileError
 
 class HTMLParser(BaseParser):
     """
-    HTML文档解析器
-    支持格式：text/html, application/xhtml+xml, .html, .htm
+    Парсер HTML-документов
+    Поддерживаемые форматы: text/html, application/xhtml+xml, .html, .htm
     """
 
     SUPPORTED_MIME_TYPES = ['text/html', 'application/xhtml+xml']
     SUPPORTED_EXTENSIONS = ['.html', '.htm']
 
     def _validate_file(self):
-        """执行HTML结构验证"""
+        """Проверка структуры HTML"""
         super()._validate_file()
         path = Path(self.file_path)
         try:
             with open(path, 'r', encoding='utf-8') as f:
                 BeautifulSoup(f.read(), 'html.parser')
         except Exception as e:
-            raise InvalidFileError("html", path, "无效的HTML结构") from e
+            raise InvalidFileError("html", path, "некорректная структура HTML") from e
 
     def extract_text(self) -> str:
-        """提取纯文本内容"""
+        """Извлечение чистого текста"""
         with open(self.file_path, 'r', encoding='utf-8') as f:
             return BeautifulSoup(f, 'html.parser').get_text().strip()
 
     def extract_metadata(self) -> dict:
-        """提取网页元信息"""
+        """Извлечение метаинформации"""
         with open(self.file_path, 'r', encoding='utf-8') as f:
             soup = BeautifulSoup(f, 'html.parser')
             return {
@@ -39,7 +39,7 @@ class HTMLParser(BaseParser):
             }
 
     def extract_images(self) -> list:
-        """提取图片链接"""
+        """Извлечение ссылок на изображения"""
         with open(self.file_path, 'r', encoding='utf-8') as f:
             soup = BeautifulSoup(f, 'html.parser')
             return [img['src'] for img in soup.find_all('img') if img.get('src')]

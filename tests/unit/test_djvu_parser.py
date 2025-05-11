@@ -3,7 +3,8 @@
 import pytest
 from pathlib import Path
 from src.parsers.djvu_parser import DJVUParser
-from src.utils.exceptions import InvalidDJVUException
+from src.utils.exceptions import InvalidFileError
+
 
 class TestDJVUParser:
 
@@ -16,26 +17,26 @@ class TestDJVUParser:
         return Path("tests/data/invalid/corrupted.djvu")
 
     def test_basic_parsing(self, valid_djvu):
-        """测试从有效 DJVU 文件中提取文本"""
+        """Тестирование извлечения текста из корректного DJVU файла"""
         parser = DJVUParser(valid_djvu)
         text = parser.extract_text()
-        
+
         assert isinstance(text, str)
-        assert len(text) > 0  # 确保提取的文本不为空
-        assert "Expected Content" in text  # 替换为实际预期内容或关键字
-    
+        assert len(text) > 0
+        assert "Пример текста" in text
+
     def test_metadata_extraction(self, valid_djvu):
-        """测试从有效 DJVU 文件中提取元数据"""
+        """Тестирование извлечения метаданных из DJVU файла"""
         parser = DJVUParser(valid_djvu)
-        
+
         metadata = parser.extract_metadata()
-        
+
         assert isinstance(metadata, dict)
-        assert "title" in metadata  # 确保元数据中包含标题
-        assert "author" in metadata  # 确保元数据中包含作者（如果适用）
-        assert "num_pages" in metadata  # 确保元数据中包含页数
-    
+        assert "title" in metadata  # Проверка наличия заголовка
+        assert "author" in metadata  # Проверка наличия автора
+        assert "creationDate" in metadata  # Проверка даты создания
+
     def test_invalid_file(self, invalid_djvu):
-        """测试处理无效 DJVU 文件时抛出异常"""
-        with pytest.raises(InvalidDJVUException):
+        """Тестирование обработки некорректного DJVU файла"""
+        with pytest.raises(InvalidFileError):
             DJVUParser(invalid_djvu).extract_text()

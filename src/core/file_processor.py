@@ -1,33 +1,34 @@
 # src/core/file_processor.py
 """
-文件处理核心模块
+Основной модуль обработки файлов
 """
 from pathlib import Path
 from typing import Dict, Any
 from src.parsers.parser_factory import ParserFactory
 from src.utils.exceptions import ParserException
 
+
 class FileProcessor:
     """
-    文件处理器
-    功能：协调解析流程，处理异常
+    Обработчик файлов
+    Функционал: координация процесса парсинга, обработка исключений
     """
-    
+
     def __init__(self, file_path: Path):
         """
-        初始化文件处理器
-        :param file_path: 文件路径对象
-        :raises FileNotFoundError: 文件不存在
+        Инициализация обработчика файлов
+        :param file_path: Объект пути к файлу
+        :raises FileNotFoundError: Файл не существует
         """
         if not file_path.exists():
-            raise FileNotFoundError(f"文件不存在: {file_path}")
+            raise FileNotFoundError(f"Файл не найден: {file_path}")
         self.file_path = file_path
 
     def process(self) -> Dict[str, Any]:
         """
-        安全执行解析流程
-        :return: 标准化结果字典
-        :raises ParserException: 解析相关错误
+        Безопасное выполнение процесса парсинга
+        :return: Стандартизированный словарь результатов
+        :raises ParserException: Ошибки парсинга
         """
         try:
             parser = ParserFactory.get_parser(self.file_path)
@@ -41,11 +42,11 @@ class FileProcessor:
 
     def _safe_extract(self, func: callable) -> Any:
         """
-        安全执行提取操作
-        :param func: 提取方法
-        :return: 提取结果或错误信息
+        Безопасное выполнение операции извлечения
+        :param func: Метод извлечения
+        :return: Результат извлечения или сообщение об ошибке
         """
         try:
             return func()
         except Exception as e:
-            return f"提取失败: {e.__class__.__name__}"
+            return f"Ошибка извлечения: {e.__class__.__name__}"

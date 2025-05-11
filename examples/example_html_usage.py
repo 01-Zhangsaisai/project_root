@@ -1,22 +1,24 @@
 from pathlib import Path
 from src.parsers.html_parser import HTMLParser
 
+
 def main():
-    html_file = Path("C:/Users/zss/project_root/tests/data/valid/sample.html")  # 替换为实际路径
-    
+    html_file = Path("C:/Users/zss/project_root/tests/data/valid/sample.html")  # замените на реальный путь
+
     parser = HTMLParser(html_file)
-    
+
     try:
         text = parser.extract_text()
-        print("Extracted Text:")
+        print("Извлеченный текст:")
         print(text)
-        
+
         metadata = parser.extract_metadata()
-        print("Metadata:")
+        print("Метаданные:")
         print(metadata)
-        
+
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"Произошла ошибка: {e}")
+
 
 if __name__ == "__main__":
     main()

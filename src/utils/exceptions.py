@@ -16,13 +16,13 @@ class FileValidationError(ParserException):
 class FileAccessError(ParserException):
     def __init__(self, file_path: Path, operation: str):
         super().__init__(
-            f"文件访问失败: 无法执行 {operation} 操作 ({file_path})",
+            f"Ошибка доступа к файлу: Невозможно выполнить {operation} ({file_path})",
             file_path
         )
 
 class InvalidFileError(FileValidationError):
     def __init__(self, file_type: str, file_path: Path, reason: str):
         super().__init__(
-            f"无效的{file_type.upper()}文件 ({reason})", 
+            f"Некорректный {file_type.upper()} файл ({reason})",
             file_path
         )

@@ -69,25 +69,29 @@ brew install python ghostscript libreoffice
 
 > Убедитесь, что команды `gs` и `libreoffice` доступны в PATH.
 
-
-
 ---
 
 ## 🚀 Установка и запуск
 
-```bash
 # 1. Клонируйте репозиторий
+```bash
 git clone https://github.com/01-Zhangsaisai/project_root.git
 cd project_root
+```
 
 # 2. Установите зависимости
+```bash
 pip install --upgrade pip
 pip install -r requirements.txt
+```
 
 # 3. Запустите парсер
+```bash
 python main.py <путь_к_файлу> -t <тип_документа>
+```
 
 # Пример
+```bash
 python main.py ./examples/sample.pdf -t pdf
 ``` 
 

@@ -69,6 +69,8 @@ brew install python ghostscript libreoffice
 
 > Убедитесь, что команды `gs` и `libreoffice` доступны в PATH.
 
+
+
 ---
 
 ## 🚀 Установка и запуск

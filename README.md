@@ -62,6 +62,7 @@ python main.py ./examples/sample.pdf -t pdf
 ```
 🐳 Docker
 Сборка и запуск через Docker:
+
 1.Сборка образа:
 ```bash
 docker build -t project_root:latest .

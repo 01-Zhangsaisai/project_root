@@ -33,9 +33,15 @@
 
 | Платформа       | Зависимости                              | Команды установки                          |
 |-----------------|------------------------------------------|--------------------------------------------|
-| **Windows 10/11** | Python 3.8+, Ghostscript, LibreOffice CLI | 1. Установите Python с [python.org](https://python.org)<br>2. Установите Ghostscript и LibreOffice |
-| **Ubuntu (Linux)** | python3, python3-pip, ghostscript, libreoffice | ```bash<br>sudo apt update<br>sudo apt install -y python3 python3-pip ghostscript libreoffice<br>``` |
-| **macOS**       | Python 3.8+, Ghostscript, LibreOffice    | ```bash<br>brew install python ghostscript libreoffice<br>``` |
+| **Windows 10/11** | Python 3.8+, Ghostscript, LibreOffice CLI | 1. Установите Python с [python.org](https://python.org)
+2. Установите Ghostscript и LibreOffice |
+| **Ubuntu (Linux)** | python3, python3-pip, ghostscript, libreoffice | ```bash
+sudo apt update
+sudo apt install -y python3 python3-pip ghostscript libreoffice
+``` |
+| **macOS**       | Python 3.8+, Ghostscript, LibreOffice    | ```bash
+brew install python ghostscript libreoffice
+``` |
 
 > ⚠️ Убедитесь, что команды `gs` и `libreoffice` доступны в PATH.
 
@@ -79,12 +85,18 @@ Dockerfile:
 FROM python:3.10-slim
 
 RUN apt-get update && \
-    apt-get install -y ghostscript libreoffice && \
+    apt-get install -y --no-install-recommends \
+      ghostscript \
+      libreoffice && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY . /app
-RUN pip install --no-cache-dir -r requirements.txt
+
+COPY requirements.txt ./
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+COPY . .
 
 ENTRYPOINT ["python", "main.py"]
 ```

@@ -37,13 +37,13 @@
 | **Ubuntu (Linux)**| python3, python3-pip, ghostscript, libreoffice | См. ниже команды                            |
 | **macOS**         | Python 3.8+, Ghostscript, LibreOffice    | См. ниже команды                            |
 
-**Windows 10/11:**
+Windows 10/11:
 ```bash
 # 1. Установите Python с https://python.org
 # 2. Установите Ghostscript и LibreOffice
 ```
 
-**Ubuntu (Linux):**
+Ubuntu (Linux):
 ```bash
 sudo apt update
 sudo apt install -y python3 python3-pip ghostscript libreoffice
@@ -93,7 +93,7 @@ python main.py ./examples/sample.pdf -t pdf
 
 ## 🐳 Docker
 
-### 🔨 Сборка образа
+🔨 Сборка образа
 ```dockerfile
 FROM python:3.10-slim
 
@@ -113,7 +113,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 ENTRYPOINT ["python", "main.py"]
 ``` 
 
-### ▶️ Запуск контейнера
+▶️ Запуск контейнера
 ```bash
 docker build -t project_root:latest .
 docker run --rm -v $(pwd)/data:/data project_root:latest /data/sample.docx -t docx

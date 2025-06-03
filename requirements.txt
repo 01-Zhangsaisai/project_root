@@ -7,4 +7,3 @@ beautifulsoup4
 lxml
 reportlab
 pymupdf
-pywin32

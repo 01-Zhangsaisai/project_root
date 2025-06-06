@@ -103,19 +103,21 @@ python main.py ./examples/sample.pdf -t pdf
 ```dockerfile
 FROM python:3.10-slim
 
-# Системные зависимости
 RUN apt-get update && \
-    apt-get install -y ghostscript libreoffice && \
+    apt-get install -y --no-install-recommends \
+      libreoffice \
+      djvulibre-bin \
+      ghostscript && \
     rm -rf /var/lib/apt/lists/*
 
-# Копирование кода
 WORKDIR /app
-COPY . /app
 
-# Установка Python-зависимостей
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
-# Точка входа
+COPY . .
+
 ENTRYPOINT ["python", "main.py"]
 ``` 
 

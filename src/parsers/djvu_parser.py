@@ -72,7 +72,7 @@ class DJVUParser(BaseParser):
         return images
 
     def __del__(self):
-        if self.pdf_path and os.path.exists(self.pdf_path):
+        if hasattr(self, "pdf_path") and self.pdf_path and os.path.exists(self.pdf_path):
             try:
                 os.remove(self.pdf_path)
             except Exception:

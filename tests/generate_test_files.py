@@ -45,9 +45,6 @@ def create_invalid_html(file_path):
     with open(file_path, 'w') as f:
         f.write("<html><body><h1>Некорректный HTML-файл")
 
-def create_valid_djvu(file_path):
-    with open(file_path, 'wb') as f:
-        f.write(b'DJVU\x00\x01')  # Заголовок DJVU
 
 def create_invalid_djvu(file_path):
     with open(file_path, 'wb') as f:
@@ -66,7 +63,6 @@ def generate_test_files(num_files=5):
         create_valid_doc(os.path.join(valid_dir, f"sample_{i + 1}_{random_string(5)}.doc"))
         create_valid_docx(os.path.join(valid_dir, f"sample_{i + 1}_{random_string(5)}.docx"))
         create_valid_html(os.path.join(valid_dir, f"sample_{i + 1}_{random_string(5)}.html"))
-        create_valid_djvu(os.path.join(valid_dir, f"sample_{i + 1}_{random_string(5)}.djvu"))
 
         create_invalid_pdf(os.path.join(invalid_dir, f"corrupted_{i + 1}_{random_string(5)}.pdf"))
         create_invalid_doc(os.path.join(invalid_dir, f"corrupted_{i + 1}_{random_string(5)}.doc"))

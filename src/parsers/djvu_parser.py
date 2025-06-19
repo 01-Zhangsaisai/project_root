@@ -27,32 +27,55 @@ class DJVUParser(BaseParser):
         path = Path(self.file_path)
         with open(path, 'rb') as f:
             header = f.read(4)
-            if header != b'FORM':
-                raise InvalidFileError("djvu", path, "неверный формат файла (ожидался заголовок 'FORM')")
+
+            if header not in [b'FORM', b'AT&T', b'DJVI']:
+                raise InvalidFileError(
+                    "djvu",
+                    path,
+                    "неверный формат файла (ожидался заголовок 'FORM')"
+                )
 
     def _convert_to_pdf(self) -> str:
+        abs_file_path = str(Path(self.file_path).absolute())
         pdf_path = Path(self.file_path).with_suffix('.pdf')
-        try:
-            subprocess.run(
-                ["ddjvu", "-format=pdf", self.file_path, str(pdf_path)],
-                check=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
+        abs_pdf_path = str(pdf_path.absolute())
+
+        subprocess.run(
+            ["ddjvu", "-format=pdf", abs_file_path, abs_pdf_path],
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
+
+        if not Path(abs_pdf_path).exists():
+            raise InvalidFileError(
+                "djvu",
+                Path(self.file_path),
+                "не удалось создать PDF-файл"
             )
-            if not pdf_path.exists():
-                raise InvalidFileError("djvu", Path(self.file_path), "не удалось создать PDF-файл")
-        except FileNotFoundError:
-            raise InvalidFileError("djvu", Path(self.file_path), "утилита 'ddjvu' не установлена")
-        except subprocess.CalledProcessError:
-            raise InvalidFileError("djvu", Path(self.file_path), "ошибка конвертации в PDF")
-        return str(pdf_path)
+
+        return abs_pdf_path
 
     def extract_text(self) -> str:
         try:
-            with fitz.open(self.pdf_path) as doc:
-                return "\n".join(page.get_text() for page in doc)
+            result = subprocess.run(
+                ["djvutxt", self.file_path],
+                capture_output=True,
+                text=True,
+                encoding='utf-8',
+                errors='ignore',
+                check=True
+            )
+            return result.stdout.strip() or "⚠️ Текст не обнаружен"
         except Exception as e:
-            raise FileAccessError(Path(self.file_path), "извлечение текста из PDF") from e
+            try:
+                if not Path(self.pdf_path).exists():
+                    raise FileNotFoundError(f"PDF файл не найден: {self.pdf_path}")
+
+                with fitz.open(self.pdf_path) as doc:
+                    return "\n".join(page.get_text() for page in doc)
+            except Exception:
+                raise FileAccessError(Path(self.file_path), "извлечение текста") from e
 
     def extract_metadata(self) -> dict:
         try:
